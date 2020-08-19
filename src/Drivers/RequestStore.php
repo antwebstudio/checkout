@@ -19,6 +19,7 @@ use Vanilo\Checkout\Traits\HasCart;
 use Vanilo\Checkout\Traits\HasCheckoutState;
 use Vanilo\Contracts\Address;
 use Vanilo\Contracts\Billpayer;
+use Vanilo\Shipping\ShippingMethods;
 
 /**
  * Stores & fetches checkout data across http requests.
@@ -43,6 +44,8 @@ class RequestStore implements CheckoutStore
     /** @var array */
     protected $customData = [];
 
+    protected $shippingMethod;
+
     public function __construct($config, CheckoutDataFactory $dataFactory)
     {
         $this->dataFactory     = $dataFactory;
@@ -65,6 +68,7 @@ class RequestStore implements CheckoutStore
         }
 
         $this->updateShippingAddress($shippingAddress);
+        $this->shippingMethod = $data['shippingMethod'];
     }
 
     /**
@@ -72,7 +76,7 @@ class RequestStore implements CheckoutStore
      */
     public function total()
     {
-        return $this->cart->total();
+        return $this->cart->total() + $this->getShippingCharges();
     }
 
     /**
@@ -125,6 +129,17 @@ class RequestStore implements CheckoutStore
     public function getCustomAttributes(): array
     {
         return $this->customData;
+    }
+
+    public function getShippingMethodId() {
+        return $this->shippingMethod;
+    }
+
+    public function getShippingCharges() {
+        $ups = ShippingMethods::make('ups');
+        $rates = $ups->getRate($this)->toArray();
+        
+        return $rates['price'];
     }
 
     /**

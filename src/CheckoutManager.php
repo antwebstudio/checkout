@@ -112,6 +112,14 @@ class CheckoutManager implements CheckoutContract
         return $this->store->getCustomAttributes();
     }
 
+    public function getShippingMethodId() {
+        return $this->store->getShippingMethodId();
+    }
+
+    public function getShippingCharges() {
+        return $this->store->getShippingCharges();
+    }
+
     /**
      * @inheritdoc
      */
