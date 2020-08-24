@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.x Series
+
+### Unreleased
+##### 2020-XX-YY
+
+- Dropped Laravel 5 Support
+
 ## 1.x Series
 
 ### 1.2.0
