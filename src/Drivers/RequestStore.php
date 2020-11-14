@@ -38,6 +38,8 @@ class RequestStore implements CheckoutStore
     /** @var  Address */
     protected $shippingAddress;
 
+    protected $shippingContact;
+
     /** @var  CheckoutDataFactory */
     protected $dataFactory;
 
@@ -46,11 +48,14 @@ class RequestStore implements CheckoutStore
 
     protected $shippingMethod;
 
+    protected $notes;
+
     public function __construct($config, CheckoutDataFactory $dataFactory)
     {
         $this->dataFactory     = $dataFactory;
         $this->billpayer       = $dataFactory->createBillpayer();
         $this->shippingAddress = $dataFactory->createShippingAddress();
+        $this->shippingContact = app(\App\Models\ShippingContact::class);
     }
 
     /**
@@ -59,6 +64,7 @@ class RequestStore implements CheckoutStore
     public function update(array $data)
     {
         $this->updateBillpayer($data['billpayer'] ??  []);
+        $this->updateShippingContact($data['shippingContact'] ?? []);
 
         if (Arr::get($data, 'ship_to_billing_address')) {
             $shippingAddress         = $data['billpayer']['address'];
@@ -66,6 +72,8 @@ class RequestStore implements CheckoutStore
         } else {
             $shippingAddress = $data['shippingAddress'] ?? [];
         }
+
+        $this->notes = $data['notes'] ?? null;
 
         $this->updateShippingAddress($shippingAddress);
         $this->shippingMethod = $data['shippingMethod'];
@@ -93,6 +101,10 @@ class RequestStore implements CheckoutStore
     public function setBillpayer(Billpayer $billpayer)
     {
         $this->billpayer = $billpayer;
+    }
+
+    public function getShippingContact() {
+        return $this->shippingContact;
     }
 
     /**
@@ -136,10 +148,20 @@ class RequestStore implements CheckoutStore
     }
 
     public function getShippingCharges() {
-        $ups = ShippingMethods::make('ups');
-        $rates = $ups->getRate($this)->toArray();
-        
-        return $rates['price'];
+        $shippingMethod = $this->getShippingMethodId();
+
+        if (isset($shippingMethod)) {
+            $ups = ShippingMethods::make('ups');
+            $rates = $ups->getRate($this)->toArray();
+            
+            return $rates['price'];
+        } else {
+            return 0;
+        }
+    }
+
+    public function getNotes() {
+        return $this->notes;
     }
 
     /**
@@ -149,6 +171,10 @@ class RequestStore implements CheckoutStore
     {
         $this->fill($this->billpayer, Arr::except($data, 'address'));
         $this->fill($this->billpayer->address, $data['address']);
+    }
+
+    protected function updateShippingContact($data) {
+        $this->fill($this->shippingContact, $data);
     }
 
     /**

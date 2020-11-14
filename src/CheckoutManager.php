@@ -76,12 +76,20 @@ class CheckoutManager implements CheckoutContract
         return $this->store->setBillpayer($billpayer);
     }
 
+    public function getShippingContact() {
+        return $this->store->getShippingContact();
+    }
+
     /**
      * @inheritdoc
      */
     public function getShippingAddress(): Address
     {
         return $this->store->getShippingAddress();
+    }
+
+    public function getNotes() {
+        return $this->store->getNotes();
     }
 
     /**
